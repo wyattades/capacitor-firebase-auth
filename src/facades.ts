@@ -19,7 +19,7 @@ if (Capacitor.platform === 'web') {
     registerWebPlugin(CapacitorFirebaseAuth)
 }
 
-export const cfaLink = (providerId: string, data?: SignInOptions): Observable<firebase.User> => {
+export const cfaLink = (providerId: string): Observable<firebase.auth.UserCredential> => {
 	const googleProvider = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
 	const facebookProvider = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
 	const twitterProvider = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
@@ -34,7 +34,7 @@ export const cfaLink = (providerId: string, data?: SignInOptions): Observable<fi
         case cfaSignInAppleProvider:
             return cfaLinkApple();
 		case phoneProvider:
-			return cfaLinkPhone(data.phone, data.verificationCode);
+			return cfaLinkPhone();
 		default:
 			return throwError(new Error(`The '${providerId}' provider was not supported`));
 	}
@@ -43,10 +43,21 @@ export const cfaLink = (providerId: string, data?: SignInOptions): Observable<fi
 /**
  * Call the Google link method on native layer and links user on web layer with retrieved credentials.
  */
-export const cfaLinkGoogle = (): Observable<firebase.User> => {
+export const cfaLinkGoogle = (): Observable<firebase.auth.UserCredential> => {
 	return new Observable(observer => {
 		// get the provider id
 		const providerId = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
 
 		// native link
 		plugin.link({providerId}).then((result: GoogleSignInResult) => {
@@ -60,7 +71,7 @@ export const cfaLinkGoogle = (): Observable<firebase.User> => {
 
 			firebase.app().auth().currentUser.linkWithCredential(credential)
 				.then((userCredential: firebase.auth.UserCredential) => {
-					observer.next(userCredential.user);
+					observer.next(userCredential);
 					observer.complete();
 				})
 				.catch((reject: any) => {
@@ -75,10 +86,21 @@ export const cfaLinkGoogle = (): Observable<firebase.User> => {
 /**
  * Call the Twitter link method on native and link on web layer with retrieved credentials.
  */
-export const cfaLinkTwitter = (): Observable<firebase.User> => {
+export const cfaLinkTwitter = (): Observable<firebase.auth.UserCredential> => {
 	return new Observable(observer => {
 		// get the provider id
 		const providerId = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
 
 		// native link
 		plugin.link({providerId}).then((result :TwitterSignInResult) => {
@@ -92,7 +114,7 @@ export const cfaLinkTwitter = (): Observable<firebase.User> => {
 
 			firebase.app().auth().currentUser.linkWithCredential(credential)
 				.then((userCredential: firebase.auth.UserCredential) => {
-					observer.next(userCredential.user);
+					observer.next(userCredential);
 					observer.complete();
 				})
 				.catch((reject: any) => observer.error(reject));
@@ -104,10 +126,21 @@ export const cfaLinkTwitter = (): Observable<firebase.User> => {
 /**
  * Call the Facebook link method on native and link on web layer with retrieved credentials.
  */
-export const cfaLinkFacebook = (): Observable<firebase.User> => {
+export const cfaLinkFacebook = (): Observable<firebase.auth.UserCredential> => {
 	return new Observable(observer => {
 		// get the provider id
 		const providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
 
 		// native link
 		plugin.link({providerId}).then((result: FacebookSignInResult) => {
@@ -121,7 +154,7 @@ export const cfaLinkFacebook = (): Observable<firebase.User> => {
 
 			firebase.app().auth().currentUser.linkWithCredential(credential)
 				.then((userCredential: firebase.auth.UserCredential) => {
-					observer.next(userCredential.user);
+					observer.next(userCredential);
 					observer.complete();
 				})
 				.catch((reject: any) => observer.error(reject));
@@ -133,10 +166,21 @@ export const cfaLinkFacebook = (): Observable<firebase.User> => {
 /**
  * Call the Apple link method on native and link on web layer with retrieved credentials.
  */
-export const cfaLinkApple = (): Observable<firebase.User> => {
+export const cfaLinkApple = (): Observable<firebase.auth.UserCredential> => {
     return new Observable(observer => {
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId: cfaSignInAppleProvider}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
         // native link
-        plugin.signIn({providerId: cfaSignInAppleProvider}).then((result: AppleSignInResult) => {
+        plugin.link({providerId: cfaSignInAppleProvider}).then((result: AppleSignInResult) => {
             const {idToken, rawNonce} = result;
 
             const provider = new firebase.auth.OAuthProvider('apple.com');
@@ -152,7 +196,7 @@ export const cfaLinkApple = (): Observable<firebase.User> => {
 
             firebase.app().auth().currentUser.linkWithCredential(credential)
                 .then((userCredential: firebase.auth.UserCredential) => {
-                    observer.next(userCredential.user);
+                    observer.next(userCredential);
                     observer.complete();
                 })
                 .catch((reject: any) => observer.error(reject));
@@ -165,12 +209,23 @@ export const cfaLinkApple = (): Observable<firebase.User> => {
  * @param phone The user phone number.
  * @param verificationCode The verification code sent by SMS (optional).
  */
-export const cfaLinkPhone = (phone: string, verificationCode?: string) : Observable<firebase.User>  => {
+export const cfaLinkPhone = () : Observable<firebase.auth.UserCredential>  => {
 	return new Observable(observer => {
 		// get the provider id
 		const providerId = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
 
-		plugin.signIn({providerId, data:{phone, verificationCode}}).then((result: PhoneSignInResult) => {
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+		plugin.link({providerId}).then((result: PhoneSignInResult) => {
 			// if there is no verification code
 			if (!result.verificationCode) {
 				return observer.complete();
@@ -186,7 +241,7 @@ export const cfaLinkPhone = (phone: string, verificationCode?: string) : Observa
 
 			firebase.app().auth().currentUser.linkWithCredential(credential)
 				.then((userCredential: firebase.auth.UserCredential) => {
-					observer.next(userCredential.user);
+					observer.next(userCredential);
 					observer.complete();
 				})
 				.catch((reject: any) => observer.error(reject));

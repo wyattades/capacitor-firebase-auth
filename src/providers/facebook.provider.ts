@@ -14,7 +14,7 @@ export const facebookSignInWeb: (options: {providerId: string, data?: SignInOpti
     return new FacebookSignInResult(credential.accessToken);
 }
 
-export const facebookLinkWeb: (options: {providerId: string, data?: SignInOptions}) => Promise<FacebookSignInResult>
+export const facebookLinkWeb: () => Promise<firebase.auth.UserCredential>
     = async () => {
     const provider = new firebase.auth.FacebookAuthProvider();
     firebase.auth().useDeviceLanguage();
@@ -22,8 +22,5 @@ export const facebookLinkWeb: (options: {providerId: string, data?: SignInOption
     if (!firebase.auth().currentUser) {
         throw new Error('No user to link to');
     }
-    const userCredential = await firebase.auth().currentUser.linkWithPopup(provider);
-
-    const {credential}: { credential: OAuthCredential; } = userCredential;
-    return new FacebookSignInResult(credential.accessToken);
+    return await firebase.auth().currentUser.linkWithPopup(provider);
 }

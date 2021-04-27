@@ -9,7 +9,7 @@ declare module "@capacitor/core" {
 
 export interface CapacitorFirebaseAuthPlugin {
   signIn(options: {providerId: string, data?: SignInOptions}): Promise<SignInResult>;
-  link(options: {providerId: string, data?: SignInOptions}): Promise<SignInResult>;
+  link(options: {providerId: string }): Promise<SignInResult | firebase.auth.UserCredential>;
   signOut(options: {}): Promise<void>;
 }
 

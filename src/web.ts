@@ -34,20 +34,20 @@ export class CapacitorFirebaseAuthWeb extends WebPlugin implements CapacitorFire
 	  return Promise.reject(`The '${options.providerId}' provider was not supported`);
   }
 
-  async link(options: {providerId: string;}): Promise<SignInResult> {
+  async link(options: {providerId: string;}): Promise<firebase.auth.UserCredential> {
       const googleProvider = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
       const facebookProvider = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
       const twitterProvider = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
       const phoneProvider = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
       switch (options.providerId) {
           case googleProvider:
-              return googleLinkWeb(options);
+              return googleLinkWeb();
           case twitterProvider:
-              return twitterLinkWeb(options);
+              return twitterLinkWeb();
           case facebookProvider:
-              return facebookLinkWeb(options);
+              return facebookLinkWeb();
           case phoneProvider:
-              return phoneLinkWeb(options);
+              return phoneLinkWeb();
       }
 
     return Promise.reject(`The '${options.providerId}' provider was not supported`);

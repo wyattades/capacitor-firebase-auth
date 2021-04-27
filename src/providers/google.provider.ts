@@ -20,7 +20,7 @@ export const googleSignInWeb: (options: {providerId: string, data?: SignInOption
         }
     }
 
-export const googleLinkWeb: (options: {providerId: string, data?: SignInOptions}) => Promise<GoogleSignInResult>
+export const googleLinkWeb: () => Promise<firebase.auth.UserCredential>
     = async () => {
         try {
 
@@ -30,11 +30,7 @@ export const googleLinkWeb: (options: {providerId: string, data?: SignInOptions}
             if (!firebase.auth().currentUser) {
                 throw new Error('No user to link to');
             }
-            const userCredential = await firebase.auth().currentUser.linkWithPopup(provider);
-
-            const {credential}: { credential: OAuthCredential } = userCredential;
-            return new GoogleSignInResult(credential.idToken);
-
+            return await firebase.auth().currentUser.linkWithPopup(provider);
         } catch (e) {
             return Promise.reject(e);
         }
