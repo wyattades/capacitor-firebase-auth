@@ -58,7 +58,7 @@ public class CapacitorFirebaseAuth: CAPPlugin {
         self.signIn(call, true)
     }
 
-    @objc func signIn(_ call: CAPPluginCall, link: bool = false) {
+    @objc func signIn(_ call: CAPPluginCall, link: Bool = false) {
         self.link = link
 
         guard let theProvider : ProviderHandler = self.getProvider(call: call) else {
