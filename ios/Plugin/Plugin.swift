@@ -55,10 +55,14 @@ public class CapacitorFirebaseAuth: CAPPlugin {
 
     @objc func link(_ call: CAPPluginCall) {
         // Set flag so that user won't be authenticated on the native level
-        self.signIn(call, link: true)
+        self.handleSignIn(call, link: true)
     }
 
-    @objc func signIn(_ call: CAPPluginCall, link: Bool = false) {
+    @objc func signIn(_ call: CAPPluginCall) {
+        self.handleSignIn(call, link: false)
+    }
+
+    func handleSignIn(_ call: CAPPluginCall, link: Bool = false) {
         self.link = link
 
         guard let theProvider : ProviderHandler = self.getProvider(call: call) else {
