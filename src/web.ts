@@ -2,10 +2,10 @@ import {registerWebPlugin, WebPlugin} from '@capacitor/core';
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import {CapacitorFirebaseAuthPlugin, SignInResult} from './definitions';
-import {facebookSignInWeb} from './providers/facebook.provider';
-import {googleSignInWeb} from './providers/google.provider';
-import {phoneSignInWeb} from './providers/phone.provider';
-import {twitterSignInWeb} from './providers/twitter.provider';
+import {facebookSignInWeb, facebookLinkWeb} from './providers/facebook.provider';
+import {googleSignInWeb, googleLinkWeb} from './providers/google.provider';
+import {phoneSignInWeb, phoneLinkWeb} from './providers/phone.provider';
+import {twitterSignInWeb, twitterLinkWeb} from './providers/twitter.provider';
 
 export class CapacitorFirebaseAuthWeb extends WebPlugin implements CapacitorFirebaseAuthPlugin {
   constructor() {
@@ -32,6 +32,25 @@ export class CapacitorFirebaseAuthWeb extends WebPlugin implements CapacitorFire
       }
 
 	  return Promise.reject(`The '${options.providerId}' provider was not supported`);
+  }
+
+  async link(options: {providerId: string;}): Promise<SignInResult> {
+      const googleProvider = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
+      const facebookProvider = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
+      const twitterProvider = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
+      const phoneProvider = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
+      switch (options.providerId) {
+          case googleProvider:
+              return googleLinkWeb(options);
+          case twitterProvider:
+              return twitterLinkWeb(options);
+          case facebookProvider:
+              return facebookLinkWeb(options);
+          case phoneProvider:
+              return phoneLinkWeb(options);
+      }
+
+    return Promise.reject(`The '${options.providerId}' provider was not supported`);
   }
 
   async signOut(options: {}): Promise<void> {
