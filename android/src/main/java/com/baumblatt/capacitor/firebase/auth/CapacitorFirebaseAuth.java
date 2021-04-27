@@ -44,6 +44,7 @@ public class CapacitorFirebaseAuth extends Plugin {
     private SparseArray<ProviderHandler> providerHandlerByRC = new SparseArray<>();
 
     private boolean nativeAuth = false;
+    private boolean link = false;
 
     private CapConfig config;
 
@@ -106,7 +107,18 @@ public class CapacitorFirebaseAuth extends Plugin {
     }
 
     @PluginMethod()
+    public void link(PluginCall call) {
+        this.signIn(call, true)
+    }
+
+    @PluginMethod()
     public void signIn(PluginCall call) {
+        this.signIn(call, false);
+    }
+
+    public void signIn(PluginCall call, boolean link) {
+        this.link = link;
+
         if (!call.getData().has("providerId")) {
             call.reject("The provider id is required");
             return;
@@ -193,7 +205,7 @@ public class CapacitorFirebaseAuth extends Plugin {
             return;
         }
 
-        if (this.nativeAuth) {
+        if (this.nativeAuth && !this.link) {
             nativeAuth(savedCall, credential);
         } else {
             JSObject jsResult = this.build(credential, savedCall);
