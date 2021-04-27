@@ -18,6 +18,7 @@ public class CapacitorFirebaseAuth: CAPPlugin {
     var providersNames: [String] = [];
     var languageCode: String = "en"
     var nativeAuth: Bool = false
+    var link: Bool = false
 
     var callbackId: String? = nil
     var providers: ProvidersMap = [:]
@@ -25,7 +26,6 @@ public class CapacitorFirebaseAuth: CAPPlugin {
     public override func load() {
         self.providersNames = self.getConfigValue("providers") as? [String] ?? []
         self.nativeAuth = self.getConfigValue("nativeAuth") as? Bool ?? false
-        self.isLink = false
         self.languageCode = self.getConfigValue("languageCode") as? String ?? "en"
 
         if (FirebaseApp.app() == nil) {
@@ -55,7 +55,7 @@ public class CapacitorFirebaseAuth: CAPPlugin {
 
     @objc func link(_ call: CAPPluginCall) {
         // Set flag so that user won't be authenticated on the native level
-        self.signIn(call, true)
+        self.signIn(call, link: true)
     }
 
     @objc func signIn(_ call: CAPPluginCall, link: Bool = false) {
