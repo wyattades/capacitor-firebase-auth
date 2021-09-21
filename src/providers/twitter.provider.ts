@@ -1,8 +1,7 @@
-import "firebase/auth";
+import firebase from 'firebase/app';
+import 'firebase/auth';
 
-import firebase from "firebase/app";
-
-import { SignInOptions, TwitterSignInResult } from "../definitions";
+import { SignInOptions, TwitterSignInResult } from '../definitions';
 
 import OAuthCredential = firebase.auth.OAuthCredential;
 
@@ -20,17 +19,15 @@ export const twitterSignInWeb: (options: {
   );
 };
 
-export const twitterLinkWeb: () => Promise<firebase.auth.UserCredential> =
-  async () => {
-    try {
-      const provider = new firebase.auth.TwitterAuthProvider();
-      firebase.auth().useDeviceLanguage();
+export const twitterLinkWeb: (options: {
+  providerId: string;
+  data?: SignInOptions;
+}) => Promise<firebase.auth.UserCredential> = async () => {
+  const provider = new firebase.auth.TwitterAuthProvider();
+  firebase.auth().useDeviceLanguage();
 
-      if (!firebase.auth().currentUser) {
-        throw new Error("No user to link to");
-      }
-      return await firebase.auth().currentUser.linkWithPopup(provider);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  };
+  if (!firebase.auth().currentUser) {
+    throw new Error('No user to link to');
+  }
+  return await firebase.auth().currentUser.linkWithPopup(provider);
+};

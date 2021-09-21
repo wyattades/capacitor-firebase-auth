@@ -1,6 +1,5 @@
-import "firebase/auth";
-
-import firebase from "firebase/app";
+import firebase from 'firebase/app';
+import 'firebase/auth';
 
 export interface SignInResult {}
 
@@ -9,9 +8,10 @@ export interface CapacitorFirebaseAuthPlugin {
     providerId: string;
     data?: SignInOptions;
   }): Promise<T>;
-  link(options: {
+  link<T extends SignInResult>(options: {
     providerId: string;
-  }): Promise<SignInResult | firebase.auth.UserCredential>;
+    data?: SignInOptions;
+  }): Promise<T>;
   signOut(options: {}): Promise<void>;
 }
 

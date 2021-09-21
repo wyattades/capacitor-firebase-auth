@@ -1,7 +1,7 @@
-import firebase from "firebase/app";
-import "firebase/auth";
+import firebase from 'firebase/app';
+import 'firebase/auth';
 
-import { PhoneSignInResult, SignInOptions } from "../definitions";
+import { PhoneSignInResult, SignInOptions } from '../definitions';
 
 export const phoneSignInWeb: (options: {
   providerId: string;
@@ -18,8 +18,10 @@ export const phoneSignInWeb: (options: {
   return new PhoneSignInResult(idToken as string, code);
 };
 
-export const phoneLinkWeb: () => Promise<firebase.auth.UserCredential> =
-  async () => {
-    // const provider = new firebase.auth.PhoneAuthProvider();
-    return Promise.reject(`The phone provider was not implemented for web yet`);
-  };
+export const phoneLinkWeb: (options: {
+  providerId: string;
+  data?: SignInOptions;
+}) => Promise<firebase.auth.UserCredential> = async () => {
+  // const provider = new firebase.auth.PhoneAuthProvider();
+  return Promise.reject(`The phone provider was not implemented for web yet`);
+};

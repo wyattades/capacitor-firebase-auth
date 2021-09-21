@@ -1,8 +1,7 @@
-import "firebase/auth";
+import firebase from 'firebase/app';
+import 'firebase/auth';
 
-import firebase from "firebase/app";
-
-import { FacebookSignInResult, SignInOptions } from "../definitions";
+import { FacebookSignInResult, SignInOptions } from '../definitions';
 
 export const facebookSignInWeb: (options: {
   providerId: string;
@@ -16,13 +15,15 @@ export const facebookSignInWeb: (options: {
   return new FacebookSignInResult(credential?.accessToken as string);
 };
 
-export const facebookLinkWeb: () => Promise<firebase.auth.UserCredential> =
-  async () => {
-    const provider = new firebase.auth.FacebookAuthProvider();
-    firebase.auth().useDeviceLanguage();
+export const facebookLinkWeb: (options: {
+  providerId: string;
+  data?: SignInOptions;
+}) => Promise<firebase.auth.UserCredential> = async () => {
+  const provider = new firebase.auth.FacebookAuthProvider();
+  firebase.auth().useDeviceLanguage();
 
-    if (!firebase.auth().currentUser) {
-      throw new Error("No user to link to");
-    }
-    return await firebase.auth().currentUser.linkWithPopup(provider);
-  };
+  if (!firebase.auth().currentUser) {
+    throw new Error('No user to link to');
+  }
+  return await firebase.auth().currentUser.linkWithPopup(provider);
+};

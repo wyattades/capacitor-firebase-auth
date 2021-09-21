@@ -109,7 +109,7 @@ public class CapacitorFirebaseAuth extends Plugin {
 
     @PluginMethod()
     public void link(PluginCall call) {
-        this.signIn(call, true)
+        this.signIn(call, true);
     }
 
     @PluginMethod()

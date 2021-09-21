@@ -1,22 +1,22 @@
-import "firebase/auth";
-
-import firebase from "firebase/app";
-
-import { WebPlugin } from "@capacitor/core";
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import { WebPlugin } from '@capacitor/core';
 
 import {
   CapacitorFirebaseAuthPlugin,
   SignInOptions,
   SignInResult,
-} from "./definitions";
-import { appleSignInWeb } from "./providers/apple.provider";
+} from './definitions';
+import { appleSignInWeb, appleLinkWeb } from './providers/apple.provider';
 import {
   facebookSignInWeb,
   facebookLinkWeb,
-} from "./providers/facebook.provider";
-import { googleSignInWeb, googleLinkWeb } from "./providers/google.provider";
-import { phoneSignInWeb, phoneLinkWeb } from "./providers/phone.provider";
-import { twitterSignInWeb, twitterLinkWeb } from "./providers/twitter.provider";
+} from './providers/facebook.provider';
+import { googleSignInWeb, googleLinkWeb } from './providers/google.provider';
+import { phoneSignInWeb, phoneLinkWeb } from './providers/phone.provider';
+import { twitterSignInWeb, twitterLinkWeb } from './providers/twitter.provider';
+
+const appleProviderId = 'apple.com';
 
 export class CapacitorFirebaseAuthWeb
   extends WebPlugin
@@ -30,23 +30,16 @@ export class CapacitorFirebaseAuthWeb
     providerId: string;
     data?: SignInOptions;
   }): Promise<T> {
-    const appleProvider = "apple.com";
-    const googleProvider = new firebase.auth.GoogleAuthProvider().providerId;
-    const facebookProvider = new firebase.auth.FacebookAuthProvider()
-      .providerId;
-    const twitterProvider = new firebase.auth.TwitterAuthProvider().providerId;
-    const phoneProvider = new firebase.auth.PhoneAuthProvider().providerId;
-
     switch (options.providerId) {
-      case appleProvider:
+      case appleProviderId:
         return appleSignInWeb(options) as any;
-      case googleProvider:
+      case firebase.auth.GoogleAuthProvider.PROVIDER_ID:
         return googleSignInWeb(options) as any;
-      case twitterProvider:
+      case firebase.auth.TwitterAuthProvider.PROVIDER_ID:
         return twitterSignInWeb(options) as any;
-      case facebookProvider:
+      case firebase.auth.FacebookAuthProvider.PROVIDER_ID:
         return facebookSignInWeb(options) as any;
-      case phoneProvider:
+      case firebase.auth.PhoneAuthProvider.PROVIDER_ID:
         return phoneSignInWeb(options) as any;
     }
 
@@ -55,22 +48,21 @@ export class CapacitorFirebaseAuthWeb
     );
   }
 
-  async link(options: {
+  async link<T extends SignInResult>(options: {
     providerId: string;
-  }): Promise<firebase.auth.UserCredential> {
-    const googleProvider = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
-    const facebookProvider = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
-    const twitterProvider = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
-    const phoneProvider = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
+    data?: SignInOptions;
+  }): Promise<T> {
     switch (options.providerId) {
-      case googleProvider:
-        return googleLinkWeb();
-      case twitterProvider:
-        return twitterLinkWeb();
-      case facebookProvider:
-        return facebookLinkWeb();
-      case phoneProvider:
-        return phoneLinkWeb();
+      case appleProviderId:
+        return appleLinkWeb(options) as any;
+      case firebase.auth.GoogleAuthProvider.PROVIDER_ID:
+        return googleLinkWeb(options) as any;
+      case firebase.auth.TwitterAuthProvider.PROVIDER_ID:
+        return twitterLinkWeb(options) as any;
+      case firebase.auth.FacebookAuthProvider.PROVIDER_ID:
+        return facebookLinkWeb(options) as any;
+      case firebase.auth.PhoneAuthProvider.PROVIDER_ID:
+        return phoneLinkWeb(options) as any;
     }
 
     return Promise.reject(
@@ -78,8 +70,7 @@ export class CapacitorFirebaseAuthWeb
     );
   }
 
-  async signOut(options: {}): Promise<void> {
-    console.log(options);
+  async signOut(_options: {}): Promise<void> {
     return firebase.auth().signOut();
   }
 }
