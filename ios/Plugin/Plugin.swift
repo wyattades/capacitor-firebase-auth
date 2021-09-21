@@ -18,6 +18,7 @@ public class CapacitorFirebaseAuth: CAPPlugin {
     var providersNames: [String] = []
     var languageCode: String = "en"
     var nativeAuth: Bool = false
+    var link: Bool = false
 
     var callbackId: String? = nil
     var providers: ProvidersMap = [:]
@@ -52,7 +53,18 @@ public class CapacitorFirebaseAuth: CAPPlugin {
         }
     }
 
+    @objc func link(_ call: CAPPluginCall) {
+        // Set flag so that user won't be authenticated on the native level
+        self.handleSignIn(call, link: true)
+    }
+
     @objc func signIn(_ call: CAPPluginCall) {
+        self.handleSignIn(call, link: false)
+    }
+
+    func handleSignIn(_ call: CAPPluginCall, link: Bool = false) {
+        self.link = link
+
         guard let theProvider : ProviderHandler = self.getProvider(call: call) else {
             // call.reject inside getProvider
             return
@@ -92,7 +104,7 @@ public class CapacitorFirebaseAuth: CAPPlugin {
     }
 
     func handleAuthCredentials(credential: AuthCredential) {
-        if (self.nativeAuth) {
+        if (self.nativeAuth && !self.link) {
             self.authenticate(credential: credential)
         } else {
             self.buildResult(credential: credential)

@@ -14,6 +14,238 @@ export const CapacitorFirebaseAuth = registerPlugin<CapacitorFirebaseAuthPlugin>
 });
 const plugin: CapacitorFirebaseAuthPlugin = CapacitorFirebaseAuth;
 
+export const cfaLink = (providerId: string): Observable<firebase.auth.UserCredential> => {
+	const googleProvider = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
+	const facebookProvider = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
+	const twitterProvider = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
+	const phoneProvider = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
+	switch (providerId) {
+		case googleProvider:
+			return cfaLinkGoogle();
+		case twitterProvider:
+			return cfaLinkTwitter();
+		case facebookProvider:
+			return cfaLinkFacebook();
+        case cfaSignInAppleProvider:
+            return cfaLinkApple();
+		case phoneProvider:
+			return cfaLinkPhone();
+		default:
+			return throwError(new Error(`The '${providerId}' provider was not supported`));
+	}
+};
+
+/**
+ * Call the Google link method on native layer and links user on web layer with retrieved credentials.
+ */
+export const cfaLinkGoogle = (): Observable<firebase.auth.UserCredential> => {
+	return new Observable(observer => {
+		// get the provider id
+		const providerId = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+		// native link
+		plugin.link({providerId}).then((result: GoogleSignInResult) => {
+			// create the credentials
+			const credential = firebase.auth.GoogleAuthProvider.credential(result.idToken);
+
+			// web link
+			if (!firebase.app().auth().currentUser) {
+				return observer.error(new Error('No user to link to'));
+			}
+
+			firebase.app().auth().currentUser.linkWithCredential(credential)
+				.then((userCredential: firebase.auth.UserCredential) => {
+					observer.next(userCredential);
+					observer.complete();
+				})
+				.catch((reject: any) => {
+					observer.error(reject);
+				});
+		}).catch(reject => {
+			observer.error(reject);
+		});
+	});
+};
+
+/**
+ * Call the Twitter link method on native and link on web layer with retrieved credentials.
+ */
+export const cfaLinkTwitter = (): Observable<firebase.auth.UserCredential> => {
+	return new Observable(observer => {
+		// get the provider id
+		const providerId = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+		// native link
+		plugin.link({providerId}).then((result :TwitterSignInResult) => {
+			// create the credentials
+			const credential = firebase.auth.TwitterAuthProvider.credential(result.idToken, result.secret);
+
+			// web link
+			if (!firebase.app().auth().currentUser) {
+				return observer.error(new Error('No user to link to'));
+			}
+
+			firebase.app().auth().currentUser.linkWithCredential(credential)
+				.then((userCredential: firebase.auth.UserCredential) => {
+					observer.next(userCredential);
+					observer.complete();
+				})
+				.catch((reject: any) => observer.error(reject));
+
+		}).catch(reject => observer.error(reject));
+	});
+};
+
+/**
+ * Call the Facebook link method on native and link on web layer with retrieved credentials.
+ */
+export const cfaLinkFacebook = (): Observable<firebase.auth.UserCredential> => {
+	return new Observable(observer => {
+		// get the provider id
+		const providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+		// native link
+		plugin.link({providerId}).then((result: FacebookSignInResult) => {
+			// create the credentials
+			const credential = firebase.auth.FacebookAuthProvider.credential(result.idToken);
+
+			// web link
+			if (!firebase.app().auth().currentUser) {
+				return observer.error(new Error('No user to link to'));
+			}
+
+			firebase.app().auth().currentUser.linkWithCredential(credential)
+				.then((userCredential: firebase.auth.UserCredential) => {
+					observer.next(userCredential);
+					observer.complete();
+				})
+				.catch((reject: any) => observer.error(reject));
+
+		}).catch(reject => observer.error(reject));
+	});
+};
+
+/**
+ * Call the Apple link method on native and link on web layer with retrieved credentials.
+ */
+export const cfaLinkApple = (): Observable<firebase.auth.UserCredential> => {
+    return new Observable(observer => {
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId: cfaSignInAppleProvider}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+        // native link
+        plugin.link({providerId: cfaSignInAppleProvider}).then((result: AppleSignInResult) => {
+            const {idToken, rawNonce} = result;
+
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+
+            const credential = provider.credential({idToken, rawNonce})
+
+            // web link
+			if (!firebase.app().auth().currentUser) {
+				return observer.error(new Error('No user to link to'));
+			}
+
+            firebase.app().auth().currentUser.linkWithCredential(credential)
+                .then((userCredential: firebase.auth.UserCredential) => {
+                    observer.next(userCredential);
+                    observer.complete();
+                })
+                .catch((reject: any) => observer.error(reject));
+        }).catch(reject => observer.error(reject));
+    });
+}
+
+/**
+ * Call the Phone verification link, handling send and retrieve to code on native, but only link on web with retrieved credentials.
+ * @param phone The user phone number.
+ * @param verificationCode The verification code sent by SMS (optional).
+ */
+export const cfaLinkPhone = () : Observable<firebase.auth.UserCredential>  => {
+	return new Observable(observer => {
+		// get the provider id
+		const providerId = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
+
+		// Special handling on the web as we cannot link the auth provider twice
+		if (Capacitor.platform === 'web') {
+			plugin.link({providerId}).then((result: firebase.auth.UserCredential) => {
+				observer.next(result);
+				observer.complete();
+			}).catch(reject => {
+				observer.error(reject);
+			});
+			return;
+		}
+
+		plugin.link({providerId}).then((result: PhoneSignInResult) => {
+			// if there is no verification code
+			if (!result.verificationCode) {
+				return observer.complete();
+			}
+
+			// create the credentials
+			const credential = firebase.auth.PhoneAuthProvider.credential(result.verificationId, result.verificationCode);
+
+			// web link
+			if (!firebase.app().auth().currentUser) {
+				return observer.error(new Error('No user to link to'));
+			}
+
+			firebase.app().auth().currentUser.linkWithCredential(credential)
+				.then((userCredential: firebase.auth.UserCredential) => {
+					observer.next(userCredential);
+					observer.complete();
+				})
+				.catch((reject: any) => observer.error(reject));
+
+		}).catch(reject => observer.error(reject));
+
+	});
+};
+
 /**
  * Call the sign in method on native layer and sign in on web layer with retrieved credentials.
  * @param providerId The provider identification.
