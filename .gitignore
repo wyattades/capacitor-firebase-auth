@@ -4,6 +4,8 @@ android/build
 android/capacitor-firebase-auth.iml
 ios/Plugin/Pods
 capacitor-firebase-auth-nightly.tgz
+android/local.properties
+android/.gradle/
 
 # dependencies
 /node_modules
