@@ -47,7 +47,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
     api 'com.google.android.material:material:1.1.0'
-    implementation platform('com.google.firebase:firebase-bom:28.4.2')
+    implementation platform('com.google.firebase:firebase-bom:26.8.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.facebook.android:facebook-login:latest.release'
     implementation 'com.google.android.gms:play-services-auth:18.0.0'
