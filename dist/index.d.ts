@@ -1,116 +1,110 @@
+import { PluginListenerHandle } from '@capacitor/core';
 import firebase from 'firebase/app';
-import { Observable, UnaryFunction } from 'rxjs';
 
-interface SignInResult {
-}
+type EventMapping = {
+    cfaSignInPhoneOnCodeSent: {
+        verificationId: string;
+    };
+    cfaSignInPhoneOnCodeReceived: {
+        verificationId: string;
+        verificationCode: string;
+    };
+};
 interface CapacitorFirebaseAuthPlugin {
-    signIn<T extends SignInResult>(options: {
+    signIn<T>(options: {
         providerId: string;
         data?: SignInOptions;
     }): Promise<T>;
-    link<T extends SignInResult>(options: {
+    link<T>(options: {
         providerId: string;
         data?: SignInOptions;
     }): Promise<T>;
     signOut(options: {}): Promise<void>;
+    addListener(eventName: 'cfaSignInPhoneOnCodeSent', cb: (data: EventMapping['cfaSignInPhoneOnCodeSent']) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
+    addListener(eventName: 'cfaSignInPhoneOnCodeReceived', cb: (data: EventMapping['cfaSignInPhoneOnCodeReceived']) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
+    removeAllListeners(): Promise<void>;
 }
-declare class GoogleSignInResult implements SignInResult {
-    idToken: string;
+type SignInResult = {
     providerId: string;
-    constructor(idToken: string);
-}
-declare class TwitterSignInResult implements SignInResult {
+};
+type GoogleSignInResult = SignInResult & {
+    idToken: string;
+};
+type TwitterSignInResult = SignInResult & {
     idToken: string;
     secret: string;
-    providerId: string;
-    constructor(idToken: string, secret: string);
-}
-declare class FacebookSignInResult implements SignInResult {
+};
+type FacebookSignInResult = SignInResult & {
     idToken: string;
-    providerId: string;
-    constructor(idToken: string);
-}
-declare class AppleSignInResult implements SignInResult {
+};
+type AppleSignInResult = SignInResult & {
     idToken: string;
     rawNonce: string;
     accessToken: string;
     secret: string;
-    providerId: string;
-    constructor(idToken: string, rawNonce: string, accessToken: string, secret: string);
-}
-declare class PhoneSignInResult implements SignInResult {
+};
+type PhoneSignInResult = SignInResult & {
     verificationId: string;
     verificationCode: string;
-    providerId: string;
-    constructor(verificationId: string, verificationCode: string);
-}
-interface PhoneSignInOptions {
+};
+type PhoneSignInOptions = {
     container?: HTMLElement;
     phone: string;
     verificationCode?: string;
-}
-declare type SignInOptions = PhoneSignInOptions;
+};
+type SignInOptionsMap = {
+    ['google.com']: never;
+    ['apple.com']: never;
+    ['facebook.com']: never;
+    ['twitter.com']: never;
+    phone: PhoneSignInOptions;
+};
+type SignInOptions = SignInOptionsMap[keyof SignInOptionsMap];
 
 declare const CapacitorFirebaseAuth: CapacitorFirebaseAuthPlugin;
-declare const cfaLink: (providerId: string, data?: PhoneSignInOptions | undefined) => Observable<{
+type MaybePromise<T> = T | Promise<T>;
+declare class AppleAuthProvider extends firebase.auth.OAuthProvider {
+    static PROVIDER_ID: string;
+    constructor();
+}
+declare const PROVIDER_MAP: {
+    "google.com": {
+        providerId: string;
+        Provider: typeof firebase.auth.GoogleAuthProvider;
+        buildCredential: (signInResult: GoogleSignInResult, Provider: typeof firebase.auth.GoogleAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+    };
+    "apple.com": {
+        providerId: string;
+        Provider: typeof AppleAuthProvider;
+        buildCredential: (signInResult: AppleSignInResult, Provider: typeof AppleAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+    };
+    "facebook.com": {
+        providerId: string;
+        Provider: typeof firebase.auth.FacebookAuthProvider;
+        buildCredential: (signInResult: FacebookSignInResult, Provider: typeof firebase.auth.FacebookAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+    };
+    "twitter.com": {
+        providerId: string;
+        Provider: typeof firebase.auth.TwitterAuthProvider;
+        buildCredential: (signInResult: TwitterSignInResult, Provider: typeof firebase.auth.TwitterAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+    };
+    phone: {
+        providerId: string;
+        Provider: typeof firebase.auth.PhoneAuthProvider;
+        buildCredential: (signInResult: PhoneSignInResult, Provider: typeof firebase.auth.PhoneAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+    };
+};
+type SignInResultMap = {
+    [K in keyof typeof PROVIDER_MAP]: Parameters<typeof PROVIDER_MAP[K]['buildCredential']>[0];
+};
+declare const signIn: <ProviderId extends "google.com" | "apple.com" | "facebook.com" | "twitter.com" | "phone">(providerId: ProviderId, ...[data]: SignInOptionsMap[ProviderId] extends never ? [] : [data: SignInOptionsMap[ProviderId]]) => Promise<{
     userCredential: firebase.auth.UserCredential;
-    result?: SignInResult;
-}>;
-declare const cfaLinkGoogle: () => Observable<{
+    result: SignInResultMap[ProviderId];
+} | null>;
+declare const link: <ProviderId extends "google.com" | "apple.com" | "facebook.com" | "twitter.com" | "phone">(providerId: ProviderId, ...[data]: SignInOptionsMap[ProviderId] extends never ? [] : [data: SignInOptionsMap[ProviderId]]) => Promise<{
     userCredential: firebase.auth.UserCredential;
-    result?: GoogleSignInResult;
-}>;
-declare const cfaLinkTwitter: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result?: TwitterSignInResult;
-}>;
-declare const cfaLinkFacebook: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result?: FacebookSignInResult;
-}>;
-declare const cfaLinkApple: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result?: AppleSignInResult;
-}>;
-declare const cfaLinkPhone: (phone: string, verificationCode?: string | undefined) => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result?: PhoneSignInResult;
-}>;
-declare const cfaSignIn: (providerId: string, data?: PhoneSignInOptions | undefined) => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: SignInResult;
-}>;
-declare const cfaSignInGoogle: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: GoogleSignInResult;
-}>;
-declare const cfaSignInTwitter: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: TwitterSignInResult;
-}>;
-declare const cfaSignInFacebook: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: FacebookSignInResult;
-}>;
-declare const cfaSignInAppleProvider = "apple.com";
-declare const cfaSignInApple: () => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: AppleSignInResult;
-}>;
-declare const cfaSignInPhone: (phone: string, verificationCode?: string | undefined) => Observable<{
-    userCredential: firebase.auth.UserCredential;
-    result: PhoneSignInResult;
-}>;
-declare const cfaSignInPhoneOnCodeSent: () => Observable<string>;
-declare const cfaSignInPhoneOnCodeReceived: () => Observable<{
-    verificationId: string;
-    verificationCode: string;
-}>;
-declare const cfaSignOut: () => Observable<void>;
+    result: SignInResultMap[ProviderId];
+} | null>;
+declare const signOut: () => Promise<void>;
 
-declare const mapUserToUserInfo: () => UnaryFunction<Observable<firebase.User>, Observable<firebase.UserInfo>>;
-declare const mapUserCredentialToUserInfo: () => UnaryFunction<Observable<{
-    userCredential: firebase.auth.UserCredential;
-}>, Observable<firebase.UserInfo | null>>;
-
-export { AppleSignInResult, CapacitorFirebaseAuth, CapacitorFirebaseAuthPlugin, FacebookSignInResult, GoogleSignInResult, PhoneSignInOptions, PhoneSignInResult, SignInOptions, SignInResult, TwitterSignInResult, cfaLink, cfaLinkApple, cfaLinkFacebook, cfaLinkGoogle, cfaLinkPhone, cfaLinkTwitter, cfaSignIn, cfaSignInApple, cfaSignInAppleProvider, cfaSignInFacebook, cfaSignInGoogle, cfaSignInPhone, cfaSignInPhoneOnCodeReceived, cfaSignInPhoneOnCodeSent, cfaSignInTwitter, cfaSignOut, mapUserCredentialToUserInfo, mapUserToUserInfo };
+export { AppleSignInResult, CapacitorFirebaseAuth, CapacitorFirebaseAuthPlugin, EventMapping, FacebookSignInResult, GoogleSignInResult, PhoneSignInOptions, PhoneSignInResult, SignInOptions, SignInOptionsMap, SignInResult, TwitterSignInResult, link, signIn, signOut };

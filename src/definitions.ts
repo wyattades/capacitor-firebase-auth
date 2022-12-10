@@ -1,54 +1,83 @@
-import firebase from 'firebase/app';
-import 'firebase/auth';
+import type { PluginListenerHandle } from '@capacitor/core';
 
-export interface SignInResult {}
+export type EventMapping = {
+  cfaSignInPhoneOnCodeSent: {
+    verificationId: string;
+  };
+  cfaSignInPhoneOnCodeReceived: {
+    verificationId: string;
+    verificationCode: string;
+  };
+};
 
 export interface CapacitorFirebaseAuthPlugin {
-  signIn<T extends SignInResult>(options: {
-    providerId: string;
-    data?: SignInOptions;
-  }): Promise<T>;
-  link<T extends SignInResult>(options: {
-    providerId: string;
-    data?: SignInOptions;
-  }): Promise<T>;
+  signIn<T>(options: { providerId: string; data?: SignInOptions }): Promise<T>;
+  link<T>(options: { providerId: string; data?: SignInOptions }): Promise<T>;
   signOut(options: {}): Promise<void>;
+
+  /**
+   * Add listener for <code>On Code Sent</code> event from Phone Verification process.
+   */
+  addListener(
+    eventName: 'cfaSignInPhoneOnCodeSent',
+    cb: (data: EventMapping['cfaSignInPhoneOnCodeSent']) => void
+  ): Promise<PluginListenerHandle> & PluginListenerHandle;
+
+  /**
+   * Add listener for <code>On Code Received</code> event from Phone Verification process.
+   */
+  addListener(
+    eventName: 'cfaSignInPhoneOnCodeReceived',
+    cb: (data: EventMapping['cfaSignInPhoneOnCodeReceived']) => void
+  ): Promise<PluginListenerHandle> & PluginListenerHandle;
+
+  /**
+   * Remove all the listeners that are attached to this plugin.
+   */
+  removeAllListeners(): Promise<void>;
 }
 
-export class GoogleSignInResult implements SignInResult {
-  providerId = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string) {}
-}
+export type SignInResult = {
+  providerId: string;
+};
 
-export class TwitterSignInResult implements SignInResult {
-  providerId = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string, public secret: string) {}
-}
+export type GoogleSignInResult = SignInResult & {
+  idToken: string;
+};
 
-export class FacebookSignInResult implements SignInResult {
-  providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string) {}
-}
+export type TwitterSignInResult = SignInResult & {
+  idToken: string;
+  secret: string;
+};
 
-export class AppleSignInResult implements SignInResult {
-  providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
-  constructor(
-    public idToken: string,
-    public rawNonce: string,
-    public accessToken: string,
-    public secret: string
-  ) {}
-}
+export type FacebookSignInResult = SignInResult & {
+  idToken: string;
+};
 
-export class PhoneSignInResult implements SignInResult {
-  providerId = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
-  constructor(public verificationId: string, public verificationCode: string) {}
-}
+export type AppleSignInResult = SignInResult & {
+  idToken: string;
+  rawNonce: string;
+  accessToken: string;
+  secret: string;
+};
 
-export interface PhoneSignInOptions {
+export type PhoneSignInResult = SignInResult & {
+  verificationId: string;
+  verificationCode: string;
+};
+
+export type PhoneSignInOptions = {
   container?: HTMLElement;
   phone: string;
   verificationCode?: string;
-}
+};
 
-export type SignInOptions = PhoneSignInOptions;
+export type SignInOptionsMap = {
+  ['google.com']: never;
+  ['apple.com']: never;
+  ['facebook.com']: never;
+  ['twitter.com']: never;
+  phone: PhoneSignInOptions;
+};
+
+export type SignInOptions = SignInOptionsMap[keyof SignInOptionsMap];
