@@ -18,7 +18,7 @@ export const CapacitorFirebaseAuth =
   registerPlugin<CapacitorFirebaseAuthPlugin>('CapacitorFirebaseAuth', {
     web: () => import('./web').then((m) => new m.CapacitorFirebaseAuthWeb()),
   });
-const plugin: CapacitorFirebaseAuthPlugin = CapacitorFirebaseAuth;
+const plugin = CapacitorFirebaseAuth;
 
 export const cfaLink = (
   providerId: string,
@@ -64,8 +64,8 @@ export const cfaLinkGoogle = (): Observable<{
     // Special handling on the web as we cannot link the auth provider twice
     if (Capacitor.getPlatform() === 'web') {
       plugin
-        .link({ providerId })
-        .then((userCredential: firebase.auth.UserCredential) => {
+        .link<firebase.auth.UserCredential>({ providerId })
+        .then((userCredential) => {
           observer.next({ userCredential });
           observer.complete();
         })
@@ -77,23 +77,22 @@ export const cfaLinkGoogle = (): Observable<{
 
     // native link
     plugin
-      .link({ providerId })
-      .then((result: GoogleSignInResult) => {
+      .link<GoogleSignInResult>({ providerId })
+      .then((result) => {
         // create the credentials
         const credential = firebase.auth.GoogleAuthProvider.credential(
           result.idToken
         );
 
         // web link
-        if (!firebase.app().auth().currentUser) {
+        const authUser = firebase.app().auth().currentUser;
+        if (!authUser) {
           return observer.error(new Error('No user to link to'));
         }
 
-        firebase
-          .app()
-          .auth()
-          .currentUser.linkWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+        authUser
+          .linkWithCredential(credential)
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -121,8 +120,8 @@ export const cfaLinkTwitter = (): Observable<{
     // Special handling on the web as we cannot link the auth provider twice
     if (Capacitor.getPlatform() === 'web') {
       plugin
-        .link({ providerId })
-        .then((userCredential: firebase.auth.UserCredential) => {
+        .link<firebase.auth.UserCredential>({ providerId })
+        .then((userCredential) => {
           observer.next({ userCredential });
           observer.complete();
         })
@@ -134,8 +133,8 @@ export const cfaLinkTwitter = (): Observable<{
 
     // native link
     plugin
-      .link({ providerId })
-      .then((result: TwitterSignInResult) => {
+      .link<TwitterSignInResult>({ providerId })
+      .then((result) => {
         // create the credentials
         const credential = firebase.auth.TwitterAuthProvider.credential(
           result.idToken,
@@ -143,15 +142,14 @@ export const cfaLinkTwitter = (): Observable<{
         );
 
         // web link
-        if (!firebase.app().auth().currentUser) {
+        const authUser = firebase.app().auth().currentUser;
+        if (!authUser) {
           return observer.error(new Error('No user to link to'));
         }
 
-        firebase
-          .app()
-          .auth()
-          .currentUser.linkWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+        authUser
+          .linkWithCredential(credential)
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -175,8 +173,8 @@ export const cfaLinkFacebook = (): Observable<{
     // Special handling on the web as we cannot link the auth provider twice
     if (Capacitor.getPlatform() === 'web') {
       plugin
-        .link({ providerId })
-        .then((userCredential: firebase.auth.UserCredential) => {
+        .link<firebase.auth.UserCredential>({ providerId })
+        .then((userCredential) => {
           observer.next({ userCredential });
           observer.complete();
         })
@@ -188,23 +186,22 @@ export const cfaLinkFacebook = (): Observable<{
 
     // native link
     plugin
-      .link({ providerId })
-      .then((result: FacebookSignInResult) => {
+      .link<FacebookSignInResult>({ providerId })
+      .then((result) => {
         // create the credentials
         const credential = firebase.auth.FacebookAuthProvider.credential(
           result.idToken
         );
 
         // web link
-        if (!firebase.app().auth().currentUser) {
+        const authUser = firebase.app().auth().currentUser;
+        if (!authUser) {
           return observer.error(new Error('No user to link to'));
         }
 
-        firebase
-          .app()
-          .auth()
-          .currentUser.linkWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+        authUser
+          .linkWithCredential(credential)
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -225,8 +222,10 @@ export const cfaLinkApple = (): Observable<{
     // Special handling on the web as we cannot link the auth provider twice
     if (Capacitor.getPlatform() === 'web') {
       plugin
-        .link({ providerId: cfaSignInAppleProvider })
-        .then((userCredential: firebase.auth.UserCredential) => {
+        .link<firebase.auth.UserCredential>({
+          providerId: cfaSignInAppleProvider,
+        })
+        .then((userCredential) => {
           observer.next({ userCredential });
           observer.complete();
         })
@@ -238,8 +237,8 @@ export const cfaLinkApple = (): Observable<{
 
     // native link
     plugin
-      .link({ providerId: cfaSignInAppleProvider })
-      .then((result: AppleSignInResult) => {
+      .link<AppleSignInResult>({ providerId: cfaSignInAppleProvider })
+      .then((result) => {
         const { idToken, rawNonce } = result;
 
         const provider = new firebase.auth.OAuthProvider('apple.com');
@@ -249,15 +248,14 @@ export const cfaLinkApple = (): Observable<{
         const credential = provider.credential({ idToken, rawNonce });
 
         // web link
-        if (!firebase.app().auth().currentUser) {
+        const authUser = firebase.app().auth().currentUser;
+        if (!authUser) {
           return observer.error(new Error('No user to link to'));
         }
 
-        firebase
-          .app()
-          .auth()
-          .currentUser.linkWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+        authUser
+          .linkWithCredential(credential)
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -286,8 +284,8 @@ export const cfaLinkPhone = (
     // Special handling on the web as we cannot link the auth provider twice
     if (Capacitor.getPlatform() === 'web') {
       plugin
-        .link({ providerId })
-        .then((userCredential: firebase.auth.UserCredential) => {
+        .link<firebase.auth.UserCredential>({ providerId })
+        .then((userCredential) => {
           observer.next({ userCredential });
           observer.complete();
         })
@@ -302,7 +300,7 @@ export const cfaLinkPhone = (
         providerId,
         data: { phone, verificationCode },
       })
-      .then((result: PhoneSignInResult) => {
+      .then((result) => {
         // if there is no verification code
         if (!result.verificationCode) {
           return observer.complete();
@@ -315,15 +313,14 @@ export const cfaLinkPhone = (
         );
 
         // web link
-        if (!firebase.app().auth().currentUser) {
+        const authUser = firebase.app().auth().currentUser;
+        if (!authUser) {
           return observer.error(new Error('No user to link to'));
         }
 
-        firebase
-          .app()
-          .auth()
-          .currentUser.linkWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+        authUser
+          .linkWithCredential(credential)
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -393,7 +390,7 @@ export const cfaSignInGoogle = (): Observable<{
           .app()
           .auth()
           .signInWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -421,7 +418,7 @@ export const cfaSignInTwitter = (): Observable<{
     // native sign in
     plugin
       .signIn<TwitterSignInResult>({ providerId })
-      .then((result: TwitterSignInResult) => {
+      .then((result) => {
         // create the credentials
         const credential = firebase.auth.TwitterAuthProvider.credential(
           result.idToken,
@@ -433,7 +430,7 @@ export const cfaSignInTwitter = (): Observable<{
           .app()
           .auth()
           .signInWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -457,18 +454,23 @@ export const cfaSignInFacebook = (): Observable<{
     // native sign in
     plugin
       .signIn<FacebookSignInResult>({ providerId })
-      .then((result: FacebookSignInResult) => {
+      .then((result) => {
         // create the credentials
         const credential = firebase.auth.FacebookAuthProvider.credential(
           result.idToken
         );
+
+        // TODO: add scopes here?
+        // const provider = new firebase.auth.OAuthProvider('facebook.com');
+        // provider.addScope('email');
+        // const credential = provider.credential({  idToken: result.idToken });
 
         // web sign in
         firebase
           .app()
           .auth()
           .signInWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -491,7 +493,7 @@ export const cfaSignInApple = (): Observable<{
     // native sign in
     plugin
       .signIn<AppleSignInResult>({ providerId: cfaSignInAppleProvider })
-      .then((result: AppleSignInResult) => {
+      .then((result) => {
         const { idToken, rawNonce } = result;
 
         const provider = new firebase.auth.OAuthProvider('apple.com');
@@ -505,7 +507,7 @@ export const cfaSignInApple = (): Observable<{
           .app()
           .auth()
           .signInWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
@@ -536,7 +538,7 @@ export const cfaSignInPhone = (
         providerId,
         data: { phone, verificationCode },
       })
-      .then((result: PhoneSignInResult) => {
+      .then((result) => {
         // if there is no verification code
         if (!result.verificationCode) {
           return observer.complete();
@@ -553,7 +555,7 @@ export const cfaSignInPhone = (
           .app()
           .auth()
           .signInWithCredential(credential)
-          .then((userCredential: firebase.auth.UserCredential) => {
+          .then((userCredential) => {
             observer.next({ userCredential, result });
             observer.complete();
           })
