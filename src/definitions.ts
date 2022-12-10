@@ -1,49 +1,54 @@
+import firebase from 'firebase/app';
 import 'firebase/auth';
 
-import firebase from 'firebase/app';
-
-export interface SignInResult {
-}
+export interface SignInResult {}
 
 export interface CapacitorFirebaseAuthPlugin {
-  signIn<T extends SignInResult>(options: { providerId: string, data?: SignInOptions }): Promise<T>;
+  signIn<T extends SignInResult>(options: {
+    providerId: string;
+    data?: SignInOptions;
+  }): Promise<T>;
+  link<T extends SignInResult>(options: {
+    providerId: string;
+    data?: SignInOptions;
+  }): Promise<T>;
   signOut(options: {}): Promise<void>;
 }
 
 export class GoogleSignInResult implements SignInResult {
   providerId = firebase.auth.GoogleAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string) {
-  }
+  constructor(public idToken: string) {}
 }
 
 export class TwitterSignInResult implements SignInResult {
   providerId = firebase.auth.TwitterAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string, public secret: string) {
-  }
+  constructor(public idToken: string, public secret: string) {}
 }
 
 export class FacebookSignInResult implements SignInResult {
   providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string) {
-  }
+  constructor(public idToken: string) {}
 }
 
 export class AppleSignInResult implements SignInResult {
   providerId = firebase.auth.FacebookAuthProvider.PROVIDER_ID;
-  constructor(public idToken: string, public rawNonce: string, public accessToken: string, public secret: string) {
-  }
+  constructor(
+    public idToken: string,
+    public rawNonce: string,
+    public accessToken: string,
+    public secret: string
+  ) {}
 }
 
 export class PhoneSignInResult implements SignInResult {
   providerId = firebase.auth.PhoneAuthProvider.PROVIDER_ID;
-  constructor(public verificationId: string, public verificationCode: string) {
-  }
+  constructor(public verificationId: string, public verificationCode: string) {}
 }
 
 export interface PhoneSignInOptions {
-  container?: HTMLElement
-  phone: string,
-  verificationCode?: string
+  container?: HTMLElement;
+  phone: string;
+  verificationCode?: string;
 }
 
 export type SignInOptions = PhoneSignInOptions;
