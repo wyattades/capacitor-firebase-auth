@@ -2,10 +2,15 @@
   "name": "capacitor-firebase-auth",
   "version": "3.2.0",
   "description": "Capacitor plugin for Firebase Authentication",
-  "type": "module",
-  "main": "dist/index.js",
   "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "browser": "dist/index.js",
+  "main": "dist/index.cjs",
+  "exports": {
+    "import": "./dist/index.js",
+    "default": "./dist/index.cjs"
+  },
+  "types": "types/index.d.ts",
+  "typings": "types/index.d.ts",
   "scripts": {
     "build": "tsup",
     "pack": "npm pack && mv capacitor-firebase-auth-3.*.tgz capacitor-firebase-auth-nightly.tgz",
