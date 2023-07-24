@@ -1,6 +1,16 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/auth';
 import { registerPlugin } from '@capacitor/core';
+import {
+  Auth,
+  AuthCredential,
+  FacebookAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  PhoneAuthProvider,
+  TwitterAuthProvider,
+  getAuth,
+  linkWithCredential,
+  signInWithCredential,
+} from 'firebase/auth';
 
 import type {
   AppleSignInResult,
@@ -8,8 +18,8 @@ import type {
   FacebookSignInResult,
   GoogleSignInResult,
   PhoneSignInResult,
-  TwitterSignInResult,
   SignInOptionsMap,
+  TwitterSignInResult,
 } from './definitions';
 
 export const CapacitorFirebaseAuth =
@@ -30,11 +40,12 @@ const plugin = CapacitorFirebaseAuth;
 
 abstract class BaseProvider {
   public static PROVIDER_ID: string;
+  constructor(_auth?: Auth) {}
 }
 
 type MaybePromise<T> = T | Promise<T>;
 
-class AppleAuthProvider extends firebase.auth.OAuthProvider {
+class AppleAuthProvider extends OAuthProvider {
   public static PROVIDER_ID = 'apple.com';
   constructor() {
     super(AppleAuthProvider.PROVIDER_ID);
@@ -46,7 +57,7 @@ const registerProvider = <Prov extends typeof BaseProvider, SignInResult>(
   buildCredential: (
     signInResult: SignInResult,
     Provider: Prov
-  ) => MaybePromise<firebase.auth.OAuthCredential | null>
+  ) => MaybePromise<AuthCredential | null>
 ) => {
   return {
     providerId: Provider.PROVIDER_ID,
@@ -57,30 +68,31 @@ const registerProvider = <Prov extends typeof BaseProvider, SignInResult>(
 
 const PROVIDER_MAP = {
   ['google.com']: registerProvider(
-    firebase.auth.GoogleAuthProvider,
+    GoogleAuthProvider,
     ({ idToken }: GoogleSignInResult, Provider) => Provider.credential(idToken)
   ),
   ['apple.com']: registerProvider(
     AppleAuthProvider,
     ({ idToken, rawNonce }: AppleSignInResult, Provider) => {
       const provider = new Provider();
+
       provider.addScope('email');
       provider.addScope('name');
       return provider.credential({ idToken, rawNonce });
     }
   ),
   ['facebook.com']: registerProvider(
-    firebase.auth.FacebookAuthProvider,
+    FacebookAuthProvider,
     ({ idToken }: FacebookSignInResult, Provider) =>
       Provider.credential(idToken)
   ),
   ['twitter.com']: registerProvider(
-    firebase.auth.TwitterAuthProvider,
+    TwitterAuthProvider,
     ({ idToken, secret }: TwitterSignInResult, Provider) =>
       Provider.credential(idToken, secret)
   ),
   phone: registerProvider(
-    firebase.auth.PhoneAuthProvider,
+    PhoneAuthProvider,
     ({ verificationId, verificationCode }: PhoneSignInResult, Provider) =>
       verificationCode
         ? Provider.credential(verificationId, verificationCode)
@@ -118,10 +130,7 @@ export const signIn = async <ProviderId extends keyof typeof PROVIDER_MAP>(
   const oauthCred = await buildCredential(signInResult as any, Provider as any);
   if (!oauthCred) return null; // abort if no credential
 
-  const userCredential = await firebase
-    .app()
-    .auth()
-    .signInWithCredential(oauthCred);
+  const userCredential = await signInWithCredential(getAuth(), oauthCred);
 
   return { userCredential, result: signInResult };
 };
@@ -151,12 +160,12 @@ export const link = async <ProviderId extends keyof typeof PROVIDER_MAP>(
   if (!oauthCred) return null; // abort if no credential
 
   // web link
-  const authUser = firebase.app().auth().currentUser;
+  const authUser = getAuth().currentUser;
   if (!authUser) {
     throw new Error('No user to link to');
   }
 
-  const userCredential = await authUser.linkWithCredential(oauthCred);
+  const userCredential = await linkWithCredential(authUser, oauthCred);
 
   return { userCredential, result };
 };
@@ -169,5 +178,5 @@ export const signOut = async () => {
   await plugin.signOut({});
 
   // web sign out
-  await firebase.app().auth().signOut();
+  await getAuth().signOut();
 };
