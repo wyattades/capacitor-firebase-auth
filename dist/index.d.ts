@@ -1,5 +1,6 @@
 import { PluginListenerHandle } from '@capacitor/core';
-import firebase from 'firebase/compat/app';
+import * as _firebase_auth from '@firebase/auth';
+import { GoogleAuthProvider, AuthCredential, FacebookAuthProvider, TwitterAuthProvider, PhoneAuthProvider, OAuthProvider } from 'firebase/auth';
 
 type EventMapping = {
     cfaSignInPhoneOnCodeSent: {
@@ -63,46 +64,46 @@ type SignInOptions = SignInOptionsMap[keyof SignInOptionsMap];
 
 declare const CapacitorFirebaseAuth: CapacitorFirebaseAuthPlugin;
 type MaybePromise<T> = T | Promise<T>;
-declare class AppleAuthProvider extends firebase.auth.OAuthProvider {
+declare class AppleAuthProvider extends OAuthProvider {
     static PROVIDER_ID: string;
     constructor();
 }
 declare const PROVIDER_MAP: {
     "google.com": {
         providerId: string;
-        Provider: typeof firebase.auth.GoogleAuthProvider;
-        buildCredential: (signInResult: GoogleSignInResult, Provider: typeof firebase.auth.GoogleAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+        Provider: typeof GoogleAuthProvider;
+        buildCredential: (signInResult: GoogleSignInResult, Provider: typeof GoogleAuthProvider) => MaybePromise<AuthCredential | null>;
     };
     "apple.com": {
         providerId: string;
         Provider: typeof AppleAuthProvider;
-        buildCredential: (signInResult: AppleSignInResult, Provider: typeof AppleAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+        buildCredential: (signInResult: AppleSignInResult, Provider: typeof AppleAuthProvider) => MaybePromise<AuthCredential | null>;
     };
     "facebook.com": {
         providerId: string;
-        Provider: typeof firebase.auth.FacebookAuthProvider;
-        buildCredential: (signInResult: FacebookSignInResult, Provider: typeof firebase.auth.FacebookAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+        Provider: typeof FacebookAuthProvider;
+        buildCredential: (signInResult: FacebookSignInResult, Provider: typeof FacebookAuthProvider) => MaybePromise<AuthCredential | null>;
     };
     "twitter.com": {
         providerId: string;
-        Provider: typeof firebase.auth.TwitterAuthProvider;
-        buildCredential: (signInResult: TwitterSignInResult, Provider: typeof firebase.auth.TwitterAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+        Provider: typeof TwitterAuthProvider;
+        buildCredential: (signInResult: TwitterSignInResult, Provider: typeof TwitterAuthProvider) => MaybePromise<AuthCredential | null>;
     };
     phone: {
         providerId: string;
-        Provider: typeof firebase.auth.PhoneAuthProvider;
-        buildCredential: (signInResult: PhoneSignInResult, Provider: typeof firebase.auth.PhoneAuthProvider) => MaybePromise<firebase.auth.OAuthCredential | null>;
+        Provider: typeof PhoneAuthProvider;
+        buildCredential: (signInResult: PhoneSignInResult, Provider: typeof PhoneAuthProvider) => MaybePromise<AuthCredential | null>;
     };
 };
 type SignInResultMap = {
     [K in keyof typeof PROVIDER_MAP]: Parameters<typeof PROVIDER_MAP[K]['buildCredential']>[0];
 };
 declare const signIn: <ProviderId extends "google.com" | "apple.com" | "facebook.com" | "twitter.com" | "phone">(providerId: ProviderId, ...[data]: SignInOptionsMap[ProviderId] extends never ? [] : [data: SignInOptionsMap[ProviderId]]) => Promise<{
-    userCredential: firebase.auth.UserCredential;
+    userCredential: _firebase_auth.UserCredential;
     result: SignInResultMap[ProviderId];
 } | null>;
 declare const link: <ProviderId extends "google.com" | "apple.com" | "facebook.com" | "twitter.com" | "phone">(providerId: ProviderId, ...[data]: SignInOptionsMap[ProviderId] extends never ? [] : [data: SignInOptionsMap[ProviderId]]) => Promise<{
-    userCredential: firebase.auth.UserCredential;
+    userCredential: _firebase_auth.UserCredential;
     result: SignInResultMap[ProviderId];
 } | null>;
 declare const signOut: () => Promise<void>;
