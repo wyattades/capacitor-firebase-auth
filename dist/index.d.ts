@@ -1,5 +1,5 @@
 import { PluginListenerHandle } from '@capacitor/core';
-import firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 
 type EventMapping = {
     cfaSignInPhoneOnCodeSent: {
